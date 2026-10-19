@@ -10,16 +10,12 @@
 
 ## Building:
 
-1. Clone https://github.com/m2049r/monero repo.
+1. Clone the Morelo source repository and update its submodules: `git submodule update --init --force`.
 
-2. Change repo to correct branch (example: `git checkout release-v0.17.1.9-monerujo`).
+2. In `external-libs`, create a directory link named `morelo` to the Morelo source checkout:
 
-3. Update submodules: `git submodule update --init --force`.
+Linux: `ln -s ~/morelo ~/xmrwallet/external-libs/morelo`
 
-4. Then go to folder with xmrwallet repo, then external-libs. Here you need to create symbol link to `monero` folder:
+Windows: `mklink /J "C:\Users\<USERNAME>\Documents\GitHub\xmrwallet\external-libs\morelo" "C:\Users\<USERNAME>\Documents\GitHub\morelo"`
 
-Linux: `ln -s ~/monero ~/xmrwallet/external-libs/monero`
-
-Windows: `mklink /D "C:\Users\<USERNAME>\xmrwallet\external-libs\monero" "C:\Users\<USERNAME>\monero"`
-
-5. Start Docker and then run `make` in `external-libs` folder. It will fail at end on Windows, but if `wallet2_api.h` exists in `include` folder, the build was successful. 
+3. Start Docker and run `make` in `external-libs`. This builds the Morelo native libraries for `armeabi-v7a` and `arm64-v8a`; `wallet2_api.h` must also come from Morelo. Configure the app to connect to a reachable Morelo daemon; the default mainnet RPC port is `38302`.

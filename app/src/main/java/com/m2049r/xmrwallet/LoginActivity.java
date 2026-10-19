@@ -47,7 +47,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.m2049r.xmrwallet.data.DefaultNodes;
 import com.m2049r.xmrwallet.data.Node;
 import com.m2049r.xmrwallet.data.NodeInfo;
 import com.m2049r.xmrwallet.dialog.HelpFragment;
@@ -128,13 +127,6 @@ public class LoginActivity extends BaseActivity
     @Override
     public Set<NodeInfo> getOrPopulateFavourites() {
         if (favouriteNodes.isEmpty()) {
-            for (DefaultNodes node : DefaultNodes.values()) {
-                NodeInfo nodeInfo = NodeInfo.fromString(node.getUri());
-                if (nodeInfo != null) {
-                    nodeInfo.setFavourite(true);
-                    favouriteNodes.add(nodeInfo);
-                }
-            }
             saveFavourites();
         }
         return favouriteNodes;

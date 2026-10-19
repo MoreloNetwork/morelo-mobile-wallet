@@ -225,29 +225,29 @@
         enter the node details in the following dialog.
         The &quot;Address&quot; is the hostname or IP-address of the node - this is the only
         mandatory entry.
-        Enter the &quot;Port&quot; if the node runs on a non-default port (e.g. 18089).
+        Enter the &quot;Port&quot; if the node runs on a non-default port (e.g. 38302).
         You can also optionally name the node, so you can identify it easier later on.
         Some nodes require credentials to use them. Enter the provided username &amp;
         password in the appropriate fields. Now you can &quot;Test&quot; these setting.
         The &quot;Test Results&quot; will display the blockheight, response time and actual IP used.
         The result may also be an error - usually because the hostname provided is
         not reachable in a sensible amount of time or the credentials are incorrect.
-        Or the hostname/port combination does not point to an actual Monero Node!
+        Or the hostname/port combination does not point to an actual Morelo node!
         Once the test passes (no error) - you&apos;re set to press &quot;OK&quot; to save &amp;
         bookmark this node.</p>
         <h2>Scan for Nodes</h2>
-        <p>Additionally, you can scan the network for nodes. Monerujo will start
-        scanning the network for Remote Nodes on port 18089. It begins by asking your
-        bookmarked nodes for other peers in the Monero P2P network and then continues
+        <p>Additionally, you can scan the network for nodes. Morelo Wallet will start
+        scanning the network for remote nodes on port 38302. It begins by asking your
+        bookmarked nodes for other peers in the Morelo P2P network and then continues
         by asking those for their peers, and so on. If you have no bookmarked nodes
         (or they don&apos;t tell us about their peers),
-        Monerujo will go straight to the Monero seed nodes hardcoded into Monero. The
+        it will use Morelo seed peers configured in the app. The
         scan stops when it finds 10 remote nodes in total.</p>
     ]]></string>
 
     <string name="help_uri"><![CDATA[
         <h1>Using a payment link</h1>
-        <p>You have started monerujo with a payment link. In order to send funds, please do the following:</p>
+        <p>You have started Morelo Wallet with a payment link. In order to send funds, please do the following:</p>
         <p>
         1. Open the wallet you want to spend from<br>
         2. Wait until the wallet is synced &amp; the "Give" button appears<br>

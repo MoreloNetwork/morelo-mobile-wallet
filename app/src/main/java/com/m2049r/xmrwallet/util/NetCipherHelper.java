@@ -58,7 +58,7 @@ import timber.log.Timber;
 
 @RequiredArgsConstructor
 public class NetCipherHelper implements StatusCallback {
-    public static final String USER_AGENT = "Monerujo/1.0";
+    public static final String USER_AGENT = "MoreloWallet/1.0";
     public static final int HTTP_TIMEOUT_CONNECT = 2500; //ms
     public static final int HTTP_TIMEOUT_READ = 5000; //ms
     public static final int HTTP_TIMEOUT_WRITE = 2500; //ms

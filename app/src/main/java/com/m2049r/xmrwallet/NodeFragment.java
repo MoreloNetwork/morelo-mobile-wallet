@@ -42,7 +42,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.m2049r.levin.scanner.Dispatcher;
-import com.m2049r.xmrwallet.data.DefaultNodes;
 import com.m2049r.xmrwallet.data.Node;
 import com.m2049r.xmrwallet.data.NodeInfo;
 import com.m2049r.xmrwallet.layout.NodeInfoAdapter;
@@ -275,14 +274,6 @@ public class NodeFragment extends Fragment
         @Override
         protected Boolean doInBackground(Integer... params) {
             if (params[0] == RESTORE_DEFAULTS) { // true = restore defaults
-                for (DefaultNodes node : DefaultNodes.values()) {
-                    NodeInfo nodeInfo = NodeInfo.fromString(node.getUri());
-                    if (nodeInfo != null) {
-                        nodeInfo.setFavourite(true);
-                        nodeList.add(nodeInfo);
-                    }
-                }
-                NodePinger.execute(nodeList, this);
                 return true;
             } else if (params[0] == PING) {
                 NodePinger.execute(nodeList, this);
@@ -308,16 +299,16 @@ public class NodeFragment extends Fragment
                             publishProgress(info);
                         }
                     });
-                    // also seed with monero seed nodes (see p2p/net_node.inl:410 in monero src)
-                    seedList.add(new NodeInfo(new InetSocketAddress("107.152.130.98", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("212.83.175.67", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("5.9.100.248", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("163.172.182.165", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("161.67.132.39", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("198.74.231.92", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("195.154.123.123", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("212.83.172.165", 18080)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("192.110.160.146", 18080)));
+                    int seedPort = Node.getDefaultLevinPort();
+                    seedList.add(new NodeInfo(new InetSocketAddress("pool.morelonetwork.pl", seedPort)));
+                    seedList.add(new NodeInfo(new InetSocketAddress("0.seed.morelonetwork.pl", seedPort)));
+                    seedList.add(new NodeInfo(new InetSocketAddress("1.seed.morelonetwork.pl", seedPort)));
+                    if (WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet) {
+                        seedList.add(new NodeInfo(new InetSocketAddress("20.seed.morelonetwork.pl", seedPort)));
+                        seedList.add(new NodeInfo(new InetSocketAddress("21.seed.morelonetwork.pl", seedPort)));
+                        seedList.add(new NodeInfo(new InetSocketAddress("98.seed.morelonetwork.pl", seedPort)));
+                        seedList.add(new NodeInfo(new InetSocketAddress("99.seed.morelonetwork.pl", seedPort)));
+                    }
                     d.seedPeers(seedList);
                     d.awaitTermination(NODES_TO_FIND);
                 }
