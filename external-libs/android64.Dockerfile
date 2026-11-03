@@ -18,7 +18,11 @@ RUN set -x \
 ENV ANDROID_NDK_REVISION=17c
 ENV ANDROID_NDK_HASH=3f541adbd0330a9205ba12697f6d04ec90752c53d6b622101a2a8a856e816589
 RUN set -x \
-    && curl -O https://dl.google.com/android/repository/android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip \
+    && for attempt in 1 2 3 4 5; do \
+         curl -C - -O https://dl.google.com/android/repository/android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip && break; \
+         [ "$attempt" -lt 5 ] || exit 1; \
+         sleep 5; \
+       done \
     && echo "${ANDROID_NDK_HASH}  android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip" | sha256sum -c \
     && unzip android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip \
     && rm -f android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip

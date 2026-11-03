@@ -132,7 +132,7 @@ public class BaseActivity extends SecureActivity
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         this.wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getString(R.string.app_name));
         try {
-            wl.acquire();
+            wl.acquire(30 * 60 * 1000L);
             Timber.d("WakeLock acquired");
         } catch (SecurityException ex) {
             Timber.w("WakeLock NOT acquired: %s", ex.getLocalizedMessage());

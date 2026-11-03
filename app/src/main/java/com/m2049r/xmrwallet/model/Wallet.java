@@ -25,13 +25,11 @@ import com.m2049r.xmrwallet.data.TxData;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.Value;
 import timber.log.Timber;
 
 public class Wallet {
@@ -128,7 +126,7 @@ public class Wallet {
         ConnectionStatus_Disconnected, ConnectionStatus_Connected, ConnectionStatus_WrongVersion
     }
 
-    public native String getSeed(String offset);
+    public native String getSeed();
 
     public native String getSeedLanguage();
 
@@ -239,8 +237,6 @@ public class Wallet {
 //TODO virtual void setTrustedDaemon(bool arg) = 0;
 //TODO virtual bool trustedDaemon() const = 0;
 
-    public native boolean setProxy(String address);
-
     public long getBalance() {
         return getBalance(accountIndex);
     }
@@ -267,15 +263,11 @@ public class Wallet {
 
     public native long getDaemonBlockChainTargetHeight();
 
-    boolean synced = false;
-
     public boolean isSynchronized() {
-        return synced;
+        return isSynchronizedJ();
     }
 
-    public void setSynchronized() {
-        this.synced = true;
-    }
+    private native boolean isSynchronizedJ();
 
     public static native String getDisplayAmount(long amount);
 
@@ -308,7 +300,6 @@ public class Wallet {
     public native void rescanBlockchainAsyncJ();
 
     public void rescanBlockchainAsync() {
-        synced = false;
         rescanBlockchainAsyncJ();
     }
 
@@ -329,17 +320,14 @@ public class Wallet {
         }
     }
 
-    private native long createTransactionMultDest(String[] destinations, String payment_id, long[] amounts, int mixin_count, int priority, int accountIndex, int[] subaddresses);
-
     public PendingTransaction createTransaction(TxData txData) {
         disposePendingTransaction();
         int _priority = txData.getPriority().getValue();
         final boolean sweepAll = txData.getAmount() == SWEEP_ALL;
         Timber.d("TxData: %s", txData);
         long txHandle = (sweepAll ? createSweepTransaction(txData.getDestination(), "", txData.getMixin(), _priority, accountIndex) :
-                createTransactionMultDest(txData.getDestinations(), "", txData.getAmounts(), txData.getMixin(), _priority, accountIndex, txData.getSubaddresses()));
+                createTransactionJ(txData.getDestination(), "", txData.getAmount(), txData.getMixin(), _priority, accountIndex));
         pendingTransaction = new PendingTransaction(txHandle);
-        pendingTransaction.setPocketChange(txData.getPocketChangeAmount());
         return pendingTransaction;
     }
 
@@ -361,12 +349,6 @@ public class Wallet {
 //virtual bool submitTransaction(const std::string &fileName) = 0;
 
     public native void disposeTransaction(PendingTransaction pendingTransaction);
-
-    public long estimateTransactionFee(TxData txData) {
-        return estimateTransactionFee(txData.getDestinations(), txData.getAmounts(), txData.getPriority().getValue());
-    }
-
-    private native long estimateTransactionFee(String[] destinations, long[] amounts, int priority);
 
     //virtual bool exportKeyImages(const std::string &filename) = 0;
 //virtual bool importKeyImages(const std::string &filename) = 0;
@@ -390,21 +372,6 @@ public class Wallet {
     }
 
 //virtual AddressBook * addressBook() const = 0;
-
-    public List<CoinsInfo> getCoinsInfos(boolean unspentOnly) {
-        return getCoins().getAll(accountIndex, unspentOnly);
-    }
-
-    private Coins coins = null;
-
-    private Coins getCoins() {
-        if (coins == null) {
-            coins = new Coins(getCoinsJ());
-        }
-        return coins;
-    }
-
-    private native long getCoinsJ();
 
 //virtual void setListener(WalletListener *) = 0;
 
@@ -506,22 +473,4 @@ public class Wallet {
 
     private native int getDeviceTypeJ();
 
-    @Getter
-    @Setter
-    PocketChangeSetting pocketChangeSetting = PocketChangeSetting.of(false, 0);
-
-    @Value(staticConstructor = "of")
-    static public class PocketChangeSetting {
-        boolean enabled;
-        long amount;
-
-        public String toPrefString() {
-            return Long.toString((enabled ? 1 : -1) * amount);
-        }
-
-        static public PocketChangeSetting from(String prefString) {
-            long value = Long.parseLong(prefString);
-            return of(value > 0, Math.abs(value));
-        }
-    }
 }

@@ -42,6 +42,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.m2049r.levin.scanner.Dispatcher;
+import com.m2049r.xmrwallet.data.DefaultNodes;
 import com.m2049r.xmrwallet.data.Node;
 import com.m2049r.xmrwallet.data.NodeInfo;
 import com.m2049r.xmrwallet.layout.NodeInfoAdapter;
@@ -170,10 +171,11 @@ public class NodeFragment extends Fragment
 
         pullToRefresh = view.findViewById(R.id.pullToRefresh);
         pullToRefresh.setOnRefreshListener(() -> {
-            if (WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet) {
+            if ((WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet)
+                    || !nodeList.isEmpty()) {
                 refresh(AsyncFindNodes.SCAN);
             } else {
-                Toast.makeText(getActivity(), getString(R.string.node_wrong_net), Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), getString(R.string.node_scan_requires_node), Toast.LENGTH_LONG).show();
                 pullToRefresh.setRefreshing(false);
             }
         });
@@ -274,6 +276,9 @@ public class NodeFragment extends Fragment
         @Override
         protected Boolean doInBackground(Integer... params) {
             if (params[0] == RESTORE_DEFAULTS) { // true = restore defaults
+                nodeList.clear();
+                nodeList.addAll(DefaultNodes.getNodes());
+                NodePinger.execute(nodeList, this);
                 return true;
             } else if (params[0] == PING) {
                 NodePinger.execute(nodeList, this);
@@ -299,15 +304,15 @@ public class NodeFragment extends Fragment
                             publishProgress(info);
                         }
                     });
-                    int seedPort = Node.getDefaultLevinPort();
-                    seedList.add(new NodeInfo(new InetSocketAddress("pool.morelonetwork.pl", seedPort)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("0.seed.morelonetwork.pl", seedPort)));
-                    seedList.add(new NodeInfo(new InetSocketAddress("1.seed.morelonetwork.pl", seedPort)));
                     if (WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet) {
-                        seedList.add(new NodeInfo(new InetSocketAddress("20.seed.morelonetwork.pl", seedPort)));
-                        seedList.add(new NodeInfo(new InetSocketAddress("21.seed.morelonetwork.pl", seedPort)));
-                        seedList.add(new NodeInfo(new InetSocketAddress("98.seed.morelonetwork.pl", seedPort)));
-                        seedList.add(new NodeInfo(new InetSocketAddress("99.seed.morelonetwork.pl", seedPort)));
+                        int seedPort = Node.getDefaultLevinPort();
+                        addSeedPeer(seedList, "pool.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "0.seed.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "1.seed.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "20.seed.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "21.seed.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "98.seed.morelonetwork.pl", seedPort);
+                        addSeedPeer(seedList, "99.seed.morelonetwork.pl", seedPort);
                     }
                     d.seedPeers(seedList);
                     d.awaitTermination(NODES_TO_FIND);
@@ -317,6 +322,15 @@ public class NodeFragment extends Fragment
                 return true;
             }
             return false;
+        }
+
+        private void addSeedPeer(Set<NodeInfo> seedList, String host, int port) {
+            InetSocketAddress address = new InetSocketAddress(host, port);
+            if (!address.isUnresolved()) {
+                seedList.add(new NodeInfo(address));
+            } else {
+                Timber.w("Skipping unresolved Levin seed %s", host);
+            }
         }
 
         @Override
@@ -502,7 +516,7 @@ public class NodeFragment extends Fragment
                 nodeBackup = new NodeInfo(nodeInfo);
                 etNodeName.getEditText().setText(nodeInfo.getName());
                 etNodeHost.getEditText().setText(nodeInfo.getHost());
-                etNodePort.getEditText().setText(Integer.toString(nodeInfo.getRpcPort()));
+                etNodePort.getEditText().setText(String.format(java.util.Locale.getDefault(), "%d", nodeInfo.getRpcPort()));
                 etNodeUser.getEditText().setText(nodeInfo.getUsername());
                 etNodePass.getEditText().setText(nodeInfo.getPassword());
                 showTestResult();
@@ -581,12 +595,12 @@ public class NodeFragment extends Fragment
     }
 
     void restoreDefaultNodes() {
-        if (WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet) {
-            if (!refresh(AsyncFindNodes.RESTORE_DEFAULTS)) {
-                Toast.makeText(getActivity(), getString(R.string.toast_default_nodes), Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(getActivity(), getString(R.string.node_wrong_net), Toast.LENGTH_LONG).show();
+        if (DefaultNodes.getNodes().isEmpty()) {
+            Toast.makeText(getActivity(), getString(R.string.node_scan_requires_node), Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!refresh(AsyncFindNodes.RESTORE_DEFAULTS)) {
+            Toast.makeText(getActivity(), getString(R.string.toast_default_nodes), Toast.LENGTH_SHORT).show();
         }
     }
 }

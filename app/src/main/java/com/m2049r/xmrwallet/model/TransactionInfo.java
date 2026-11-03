@@ -52,6 +52,7 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
 
     public Direction direction;
     public boolean isPending;
+    public boolean isCoinbase;
     public boolean isFailed;
     public long amount;
     public long fee;
@@ -73,6 +74,7 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
     public TransactionInfo(
             int direction,
             boolean isPending,
+            boolean isCoinbase,
             boolean isFailed,
             long amount,
             long fee,
@@ -88,6 +90,7 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
             List<Transfer> transfers) {
         this.direction = Direction.values()[direction];
         this.isPending = isPending;
+        this.isCoinbase = isCoinbase;
         this.isFailed = isFailed;
         this.amount = amount;
         this.fee = fee;
@@ -107,10 +110,6 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
     @Getter
     private long netAmount;
 
-    public long getPocketChangeAmount() {
-        return amount - netAmount;
-    }
-
     private void calcNetAmount() {
         netAmount = amount;
         if ((direction == TransactionInfo.Direction.Direction_Out) && (transfers != null)) {
@@ -122,6 +121,10 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
 
     public boolean isConfirmed() {
         return confirmations >= CONFIRMATION;
+    }
+
+    public boolean isBlockReward() {
+        return isCoinbase && !isPending && direction == Direction.Direction_In;
     }
 
     public String getDisplayLabel() {
@@ -139,6 +142,7 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
     public void writeToParcel(Parcel out, int flags) {
         out.writeInt(direction.getValue());
         out.writeByte((byte) (isPending ? 1 : 0));
+        out.writeByte((byte) (isCoinbase ? 1 : 0));
         out.writeByte((byte) (isFailed ? 1 : 0));
         out.writeLong(amount);
         out.writeLong(fee);
@@ -171,6 +175,7 @@ public class TransactionInfo implements Parcelable, Comparable<TransactionInfo> 
     private TransactionInfo(Parcel in) {
         direction = Direction.fromInteger(in.readInt());
         isPending = in.readByte() != 0;
+        isCoinbase = in.readByte() != 0;
         isFailed = in.readByte() != 0;
         amount = in.readLong();
         fee = in.readLong();

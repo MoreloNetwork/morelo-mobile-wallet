@@ -263,7 +263,7 @@ public class Node {
     }
 
     public String getAddress() {
-        return HostAndPort.fromParts(getHostAddress(), rpcPort).toString();
+        return HostAndPort.fromParts(host, rpcPort).toString();
     }
 
     public String getHostAddress() {
@@ -338,6 +338,17 @@ public class Node {
                 throw new IllegalStateException("unsupported net " + WalletManager.getInstance().getNetworkType());
         }
         return DEFAULT_LEVIN_PORT;
+    }
+
+    public int getLevinPort() {
+        return levinPort > 0 ? levinPort : getDefaultLevinPort();
+    }
+
+    public void setLevinPort(int levinPort) {
+        if (levinPort < 1 || levinPort > 65535) {
+            throw new IllegalArgumentException("invalid Levin port: " + levinPort);
+        }
+        this.levinPort = levinPort;
     }
 
     static private int DEFAULT_RPC_PORT = 0;

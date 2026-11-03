@@ -67,6 +67,7 @@ public enum Crypto {
     @Nullable
     public static Crypto withSymbol(@NonNull String symbol) {
         final String upperSymbol = symbol.toUpperCase();
+        if (upperSymbol.equals("XMR")) return XMR;
         for (Crypto crypto : values()) {
             if (crypto.symbol.equals(upperSymbol)) return crypto;
         }

@@ -123,7 +123,7 @@ public class WalletService extends Service {
                 Timber.d("newBlock() @ %d with observer %s", height, observer);
                 if (observer != null) {
                     boolean fullRefresh = false;
-                    updateDaemonState(wallet, wallet.isSynchronized() ? height : 0);
+                    updateDaemonState(wallet);
                     if (!wallet.isSynchronized()) {
                         updated = true;
                         // we want to see our transactions as they come in
@@ -152,45 +152,46 @@ public class WalletService extends Service {
             Timber.d("refreshed()");
             final Wallet wallet = getWallet();
             if (wallet == null) throw new IllegalStateException("No wallet!");
-            wallet.setSynchronized();
+            boolean fullRefresh = false;
+                updateDaemonState(wallet);
             if (updated) {
-                updateDaemonState(wallet, wallet.getBlockChainHeight());
                 wallet.refreshHistory();
-                if (observer != null) {
-                    updated = !observer.onRefreshed(wallet, true);
-                }
+                fullRefresh = true;
+            }
+            if (observer != null) {
+                updated = !observer.onRefreshed(wallet, fullRefresh);
             }
         }
     }
 
     private long lastDaemonStatusUpdate = 0;
     private long daemonHeight = 0;
+    private long daemonTargetHeight = 0;
     private Wallet.ConnectionStatus connectionStatus = Wallet.ConnectionStatus.ConnectionStatus_Disconnected;
-    private static final long STATUS_UPDATE_INTERVAL = 120000; // 120s (blocktime)
+    private static final long STATUS_UPDATE_INTERVAL = 10000;
 
-    private void updateDaemonState(Wallet wallet, long height) {
+    private void updateDaemonState(Wallet wallet) {
         long t = System.currentTimeMillis();
-        if (height > 0) { // if we get a height, we are connected
-            daemonHeight = height;
-            connectionStatus = Wallet.ConnectionStatus.ConnectionStatus_Connected;
-            lastDaemonStatusUpdate = t;
+        if (t - lastDaemonStatusUpdate < STATUS_UPDATE_INTERVAL) return;
+        lastDaemonStatusUpdate = t;
+        connectionStatus = wallet.getConnectionStatus();
+        if (connectionStatus == Wallet.ConnectionStatus.ConnectionStatus_Connected) {
+            daemonHeight = wallet.getDaemonBlockChainHeight();
+            daemonTargetHeight = wallet.getDaemonBlockChainTargetHeight();
+            if (daemonTargetHeight <= 0) daemonTargetHeight = daemonHeight;
         } else {
-            if (t - lastDaemonStatusUpdate > STATUS_UPDATE_INTERVAL) {
-                lastDaemonStatusUpdate = t;
-                // these calls really connect to the daemon - wasting time
-                daemonHeight = wallet.getDaemonBlockChainHeight();
-                if (daemonHeight > 0) {
-                    // if we get a valid height, then obviously we are connected
-                    connectionStatus = Wallet.ConnectionStatus.ConnectionStatus_Connected;
-                } else {
-                    connectionStatus = Wallet.ConnectionStatus.ConnectionStatus_Disconnected;
-                }
-            }
+            daemonHeight = 0;
+            daemonTargetHeight = 0;
         }
+        Timber.d("Daemon status=%s height=%d target=%d", connectionStatus, daemonHeight, daemonTargetHeight);
     }
 
     public long getDaemonHeight() {
         return this.daemonHeight;
+    }
+
+    public long getDaemonTargetHeight() {
+        return this.daemonTargetHeight;
     }
 
     public Wallet.ConnectionStatus getConnectionStatus() {
@@ -277,7 +278,9 @@ public class WalletService extends Service {
             Timber.d("Handling %s", msg.arg2);
             if (errorState) {
                 Timber.i("In error state.");
-                // also, we have already stopped ourselves
+                if (msg.arg2 == STOP_SERVICE) {
+                    stop();
+                }
                 return;
             }
             switch (msg.arg2) {
@@ -293,8 +296,11 @@ public class WalletService extends Service {
                                 showProgress(getString(R.string.status_wallet_loading));
                                 showProgress(10);
                                 Wallet.Status walletStatus = start(walletId, walletPw);
+                                Timber.i("Wallet load result for %s: %s", walletId,
+                                        walletStatus == null ? "no wallet status" : walletStatus);
                                 if (observer != null) observer.onWalletStarted(walletStatus);
-                                if ((walletStatus == null) || !walletStatus.isOk()) {
+                                if ((walletStatus == null)
+                                        || (walletStatus.getStatus() != Wallet.StatusEnum.Status_Ok)) {
                                     errorState = true;
                                     stop();
                                 }
@@ -321,7 +327,6 @@ public class WalletService extends Service {
                             TxData txData = extras.getParcelable(REQUEST_CMD_TX_DATA);
                             String txTag = extras.getString(REQUEST_CMD_TX_TAG);
                             assert txData != null;
-                            txData.createPocketChange(myWallet);
                             PendingTransaction pendingTransaction = myWallet.createTransaction(txData);
                             PendingTransaction.Status status = pendingTransaction.getStatus();
                             if (status != PendingTransaction.Status.Status_Ok) {
@@ -495,9 +500,13 @@ public class WalletService extends Service {
         if (listener == null) {
             Timber.d("start() loadWallet");
             Wallet aWallet = loadWallet(walletName, walletPassword);
-            if (aWallet == null) return null;
+            if (aWallet == null) {
+                Timber.e("Unable to load wallet %s", walletName);
+                return null;
+            }
             Wallet.Status walletStatus = aWallet.getFullStatus();
-            if (!walletStatus.isOk()) {
+            Timber.i("Wallet status after init: %s", walletStatus);
+            if (walletStatus.getStatus() != Wallet.StatusEnum.Status_Ok) {
                 aWallet.close();
                 return walletStatus;
             }
@@ -517,16 +526,29 @@ public class WalletService extends Service {
         Timber.d("stop()");
         setObserver(null); // in case it was not reset already
         if (listener != null) {
-            listener.stop();
-            Wallet myWallet = getWallet();
-            Timber.d("stop() closing");
-            myWallet.close();
-            Timber.d("stop() closed");
+            Timber.d("stop() pausing refresh");
+            try {
+                listener.stop();
+                Wallet myWallet = getWallet();
+                Timber.d("stop() closing");
+                boolean closed = myWallet.close();
+                if (!closed) {
+                    Timber.e("Wallet close failed: %s", myWallet.getStatus().getErrorString());
+                    return;
+                }
+                Timber.d("stop() closed");
+            } catch (RuntimeException ex) {
+                Timber.e(ex, "Unable to close wallet service cleanly");
+                return;
+            }
             listener = null;
         }
+        Timber.d("stop() removing foreground notification");
         stopForeground(true);
+        Timber.d("stop() stopping service");
         stopSelf();
         Running = false;
+        Timber.d("stop() complete");
     }
 
     private Wallet loadWallet(String walletName, String walletPassword) {
@@ -535,8 +557,8 @@ public class WalletService extends Service {
             Timber.d("Using daemon %s", WalletManager.getInstance().getDaemonAddress());
             showProgress(55);
             wallet.init(0);
-            wallet.setProxy(NetCipherHelper.getProxy());
             showProgress(90);
+            Timber.i("Wallet initialized: %s", wallet.getFullStatus());
         }
         return wallet;
     }
@@ -554,17 +576,20 @@ public class WalletService extends Service {
             Timber.d("device is %s", device.toString());
             if (observer != null) observer.onWalletOpen(device);
             wallet = walletMgr.openWallet(path, walletPassword);
+            if (wallet == null) {
+                Timber.e("WalletManager returned no wallet for %s", walletName);
+                return null;
+            }
             showProgress(60);
             Timber.d("wallet opened");
             Wallet.Status walletStatus = wallet.getStatus();
-            if (!walletStatus.isOk()) {
-                Timber.d("wallet status is %s", walletStatus);
+            Timber.i("Wallet status after open: %s", walletStatus);
+            if (walletStatus.getStatus() != Wallet.StatusEnum.Status_Ok) {
                 WalletManager.getInstance().close(wallet); // TODO close() failed?
                 wallet = null;
-                // TODO what do we do with the progress??
-                // TODO tell the activity this failed
-                // this crashes in MyWalletListener(Wallet aWallet) as wallet == null
             }
+        } else {
+            Timber.e("Wallet files do not exist for %s", walletName);
         }
         return wallet;
     }

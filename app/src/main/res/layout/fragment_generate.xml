@@ -91,35 +91,6 @@
                 android:textAlignment="textStart" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/bSeedOffset"
-            style="@style/MoneroIconButton.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:background="?android:selectableItemBackground"
-            android:text="@string/label_seed_offset_encrypt"
-            app:icon="@drawable/ic_keyboard_arrow_down" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/etSeedOffset"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/header_top_first"
-            android:visibility="gone">
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/MoneroEdit"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/seed_offset_hint"
-                android:inputType="textVisiblePassword"
-                android:maxLines="1"
-                android:textAlignment="textStart" />
-        </com.google.android.material.textfield.TextInputLayout>
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/etWalletAddress"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

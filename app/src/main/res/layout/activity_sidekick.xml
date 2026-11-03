@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/logo_watermark"
     android:orientation="vertical">
 
     <com.m2049r.xmrwallet.widget.Toolbar
@@ -21,13 +22,15 @@
         <FrameLayout
             android:id="@+id/fragment_bluetooth"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/logo_watermark" />
 
         <FrameLayout
             android:id="@+id/fragment_sidekick"
             android:layout_marginTop="8dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="@drawable/logo_watermark" />
 
     </LinearLayout>
 </LinearLayout>

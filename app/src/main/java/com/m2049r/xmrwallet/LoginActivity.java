@@ -936,8 +936,7 @@ public class LoginActivity extends BaseActivity
 
     @Override
     public void onGenerate(final String name, final String password,
-                           final String seed, final String offset,
-                           final long restoreHeight) {
+                           final String seed, final long restoreHeight) {
         createWallet(name, password,
                 new WalletCreator() {
                     @Override
@@ -948,7 +947,7 @@ public class LoginActivity extends BaseActivity
                     @Override
                     public boolean createWallet(File aFile, String password) {
                         Wallet newWallet = WalletManager.getInstance()
-                                .recoveryWallet(aFile, password, seed, offset, restoreHeight);
+                                .recoveryWallet(aFile, password, seed, restoreHeight);
                         return checkAndCloseWallet(newWallet);
                     }
                 });
@@ -1132,8 +1131,7 @@ public class LoginActivity extends BaseActivity
             return true;
         } else if (id == R.id.action_default_nodes) {
             Fragment f = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            if ((WalletManager.getInstance().getNetworkType() == NetworkType.NetworkType_Mainnet) &&
-                    (f instanceof NodeFragment)) {
+            if (f instanceof NodeFragment) {
                 ((NodeFragment) f).restoreDefaultNodes();
             }
             return true;
@@ -1448,7 +1446,6 @@ public class LoginActivity extends BaseActivity
             @Override
             public void connected() {
                 Timber.d("CONNECTED");
-                WalletManager.getInstance().setProxy(NetCipherHelper.getProxy());
                 torNotify();
                 if (waitingUiTask != null) {
                     Timber.d("RUN");
@@ -1460,14 +1457,12 @@ public class LoginActivity extends BaseActivity
             @Override
             public void disconnected() {
                 Timber.d("DISCONNECTED");
-                WalletManager.getInstance().setProxy("");
                 torNotify();
             }
 
             @Override
             public void notInstalled() {
                 Timber.d("NOT INSTALLED");
-                WalletManager.getInstance().setProxy("");
                 torNotify();
             }
 

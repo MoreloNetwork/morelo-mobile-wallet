@@ -348,7 +348,8 @@ public class WalletFragment extends Fragment
             wallet.refreshHistory();
             for (TransactionInfo info : wallet.getHistory().getAll()) {
                 Timber.d("TxHeight=%d, Label=%s", info.blockheight, info.subaddressLabel);
-                if ((info.isPending || (info.blockheight >= streetHeight))
+                if (!info.isBlockReward()
+                        && (info.isPending || (info.blockheight >= streetHeight))
                         && !dismissedTransactions.contains(info.hash))
                     list.add(info);
             }
@@ -481,6 +482,8 @@ public class WalletFragment extends Fragment
         Wallet.ConnectionStatus getConnectionStatus();
 
         long getDaemonHeight(); //mBoundService.getDaemonHeight();
+
+        long getDaemonTargetHeight();
 
         void onSendRequest(View view);
 

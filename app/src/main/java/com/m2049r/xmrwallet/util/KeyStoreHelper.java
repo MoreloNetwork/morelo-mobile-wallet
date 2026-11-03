@@ -216,7 +216,6 @@ public class KeyStoreHelper {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private static void createKeysJBMR2(Context context, String alias) throws NoSuchProviderException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException {
 

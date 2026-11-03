@@ -82,7 +82,6 @@ public class TxFragment extends Fragment {
     private TextView tvTxPaymentId;
     private TextView tvTxBlockheight;
     private TextView tvTxAmount;
-    private TextView tvTxPocketChangeAmount;
     private TextView tvTxFee;
     private TextView tvTxTransfers;
     private TextView etTxNotes;
@@ -121,7 +120,6 @@ public class TxFragment extends Fragment {
         tvTxPaymentId = view.findViewById(R.id.tvTxPaymentId);
         tvTxBlockheight = view.findViewById(R.id.tvTxBlockheight);
         tvTxAmount = view.findViewById(R.id.tvTxAmount);
-        tvTxPocketChangeAmount = view.findViewById(R.id.tvTxPocketChangeAmount);
         tvTxFee = view.findViewById(R.id.tvTxFee);
         tvTxTransfers = view.findViewById(R.id.tvTxTransfers);
         etTxNotes = view.findViewById(R.id.etTxNotes);
@@ -253,15 +251,11 @@ public class TxFragment extends Fragment {
         } else if (info.isPending) {
             tvTxBlockheight.setText(getString(R.string.tx_pending));
         } else {
-            tvTxBlockheight.setText("" + info.blockheight);
+            tvTxBlockheight.setText(String.valueOf(info.blockheight));
         }
         String sign = (info.direction == TransactionInfo.Direction.Direction_In ? "+" : "-");
 
-        tvTxAmount.setText(sign + Wallet.getDisplayAmount(info.amount));
-        final long pcAmount = info.getPocketChangeAmount();
-        tvTxPocketChangeAmount.setVisibility(pcAmount > 0 ? View.VISIBLE : View.GONE);
-        tvTxPocketChangeAmount.setText(getString(R.string.pocketchange_tx_detail, Wallet.getDisplayAmount(pcAmount)));
-
+        tvTxAmount.setText(getString(R.string.tx_list_amount, sign, Wallet.getDisplayAmount(info.amount)));
         if ((info.fee > 0)) {
             String fee = Wallet.getDisplayAmount(info.fee);
             tvTxFee.setText(getString(R.string.tx_list_fee, fee));
@@ -327,7 +321,7 @@ public class TxFragment extends Fragment {
         final double unlockDays = blocks / (30. * 24);
         if (unlockDays > 0) {
             llWarning.setVisibility(View.VISIBLE);
-            tvWarning.setText(getString(R.string.tx_locked, info.unlockTime, blocks, unlockDays));
+            tvWarning.setText(getString(R.string.tx_locked, info.unlockTime, blocks, (float) unlockDays));
         }
     }
 

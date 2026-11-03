@@ -88,6 +88,10 @@ add_library(cryptonote_basic STATIC IMPORTED)
 set_target_properties(cryptonote_basic PROPERTIES IMPORTED_LOCATION
      ${EXTERNAL_LIBS_DIR}/${ANDROID_ABI}/morelo/libcryptonote_basic.a)
 
+add_library(rpc_sig STATIC IMPORTED)
+set_target_properties(rpc_sig PROPERTIES IMPORTED_LOCATION
+     ${EXTERNAL_LIBS_DIR}/${ANDROID_ABI}/morelo/librpc_sig.a)
+
 add_library(mnemonics STATIC IMPORTED)
 set_target_properties(mnemonics PROPERTIES IMPORTED_LOCATION
      ${EXTERNAL_LIBS_DIR}/${ANDROID_ABI}/morelo/libmnemonics.a)
@@ -160,6 +164,10 @@ add_library(rpc_base STATIC IMPORTED)
 set_target_properties(rpc_base PROPERTIES IMPORTED_LOCATION
         ${EXTERNAL_LIBS_DIR}/${ANDROID_ABI}/morelo/librpc_base.a)
 
+add_library(zmq STATIC IMPORTED)
+set_target_properties(zmq PROPERTIES IMPORTED_LOCATION
+        ${EXTERNAL_LIBS_DIR}/${ANDROID_ABI}/morelo/libzmq.a)
+
 #############
 # System
 #############
@@ -176,7 +184,6 @@ target_link_libraries(  monerujo
                         wallet
                         cryptonote_core
                         cryptonote_basic
-                        cryptonote_format_utils_basic
                         mnemonics
                         ringct
                         ringct_basic
@@ -195,6 +202,8 @@ target_link_libraries(  monerujo
                         version
                         randomx
                         rpc_base
+                        rpc_sig
+                        zmq
 
                         boost_chrono
                         boost_date_time
