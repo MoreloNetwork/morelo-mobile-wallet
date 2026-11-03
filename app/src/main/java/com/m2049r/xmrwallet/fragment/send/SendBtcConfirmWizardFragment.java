@@ -71,8 +71,6 @@ public class SendBtcConfirmWizardFragment extends SendWizardFragment implements 
     private View llConfirmSend;
     private Button bSend;
     private View pbProgressSend;
-    private TextView tvTxChange;
-    private View llPocketChange;
 
     private TextView tvTxXmrToKeyLabel;
     private TextView tvTxXmrToInfo;
@@ -97,8 +95,6 @@ public class SendBtcConfirmWizardFragment extends SendWizardFragment implements 
 
         tvTxFee = view.findViewById(R.id.tvTxFee);
         tvTxTotal = view.findViewById(R.id.tvTxTotal);
-        tvTxChange = view.findViewById(R.id.tvTxChange);
-        llPocketChange = view.findViewById(R.id.llPocketChange);
 
         llStageA = view.findViewById(R.id.llStageA);
         evStageA = view.findViewById(R.id.evStageA);
@@ -230,13 +226,6 @@ public class SendBtcConfirmWizardFragment extends SendWizardFragment implements 
                 tvTxFee.setText(Wallet.getDisplayAmount(pendingTransaction.getFee()));
                 tvTxTotal.setText(Wallet.getDisplayAmount(
                         pendingTransaction.getFee() + pendingTransaction.getAmount()));
-                final long change = pendingTransaction.getPocketChange();
-                if (change > 0) {
-                    llPocketChange.setVisibility(View.VISIBLE);
-                    tvTxChange.setText(Wallet.getDisplayAmount(change));
-                } else {
-                    llPocketChange.setVisibility(View.GONE);
-                }
                 updateSendButton();
             });
         } else {
@@ -360,6 +349,11 @@ public class SendBtcConfirmWizardFragment extends SendWizardFragment implements 
     }
 
     public void preSend() {
+        String walletPassword = getActivityCallback().getPassword();
+        if ((walletPassword != null) && walletPassword.isEmpty()) {
+            send();
+            return;
+        }
         Helper.promptPassword(getContext(), getActivityCallback().getWalletName(), false, new Helper.PasswordAction() {
             @Override
             public void act(String walletName, String password, boolean fingerprintUsed) {

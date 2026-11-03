@@ -372,7 +372,7 @@ public class ReceiveFragment extends Fragment {
 
     private Bitmap addLogo(Bitmap qrBitmap) {
         // addume logo & qrcode are both square
-        Bitmap logo = getMoneroLogo();
+        Bitmap logo = getWalletLogo();
         final int qrSize = qrBitmap.getWidth();
         final int logoSize = logo.getWidth();
 
@@ -389,9 +389,9 @@ public class ReceiveFragment extends Fragment {
 
     private Bitmap logo = null;
 
-    private Bitmap getMoneroLogo() {
+    private Bitmap getWalletLogo() {
         if (logo == null) {
-            logo = Helper.getBitmap(getContext(), R.drawable.ic_monerujo_qr);
+            logo = Helper.getBitmap(getContext(), R.drawable.logo);
         }
         return logo;
     }

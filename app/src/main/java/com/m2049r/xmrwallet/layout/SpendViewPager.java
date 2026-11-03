@@ -71,4 +71,10 @@ public class SpendViewPager extends ViewPager {
         if (allowSwipe) return super.onTouchEvent(event);
         return false;
     }
+
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
+    }
 }

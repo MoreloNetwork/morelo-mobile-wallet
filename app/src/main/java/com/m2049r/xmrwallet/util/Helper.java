@@ -80,14 +80,14 @@ public class Helper {
 
     static public final Crypto BASE_CRYPTO_CRYPTO = Crypto.XMR;
     static public final String BASE_CRYPTO = BASE_CRYPTO_CRYPTO.getSymbol();
-    static public final int XMR_DECIMALS = 12;
+    static public final int XMR_DECIMALS = 9;
     static public final long ONE_XMR = Math.round(Math.pow(10, Helper.XMR_DECIMALS));
 
-    static public final boolean SHOW_EXCHANGERATES = true;
-    static public boolean ALLOW_SHIFT = true;
+    static public final boolean SHOW_EXCHANGERATES = false;
+    static public boolean ALLOW_SHIFT = false;
 
     static private final String WALLET_DIR = "wallets";
-    static private final String MONERO_DIR = "monero";
+    static private final String MONERO_DIR = "morelo";
 
     static public int DISPLAY_DIGITS_INFO = 5;
 
@@ -328,7 +328,7 @@ public class Helper {
     // TODO make the log levels refer to the  WalletManagerFactory::LogLevel enum ?
     static public void initLogger(Context context, int level) {
         String home = getStorage(context, MONERO_DIR).getAbsolutePath();
-        WalletManager.initLogger(home + "/monerujo", "monerujo.log");
+        WalletManager.initLogger(home + "/morelo", "morelo.log");
         if (level >= WalletManager.LOGLEVEL_SILENT)
             WalletManager.setLogLevel(level);
     }

@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
+        android:background="@drawable/logo_watermark"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
@@ -23,12 +24,14 @@
         <FrameLayout
             android:id="@+id/fragment_bluetooth"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/logo_watermark" />
 
         <FrameLayout
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="@drawable/logo_watermark" />
 
     </LinearLayout>
 

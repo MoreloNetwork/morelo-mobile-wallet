@@ -82,6 +82,8 @@ public class SendFragment extends Fragment
 
         String getWalletName();
 
+        String getPassword();
+
         void onSend(UserNotes notes);
 
         void onDisposeRequest();
@@ -148,6 +150,10 @@ public class SendFragment extends Fragment
                 Timber.d("onPageSelected=%d/%d", newPosition, fallbackPosition);
                 if (fallbackPosition < newPosition) {
                     spendViewPager.setCurrentItem(fallbackPosition);
+                } else if (fallbackPosition == MAX_FALLBACK
+                        && newPosition > currentPosition
+                        && !spendViewPager.validateFields(currentPosition)) {
+                    spendViewPager.setCurrentItem(currentPosition);
                 } else {
                     pagerAdapter.getFragment(currentPosition).onPauseFragment();
                     pagerAdapter.getFragment(newPosition).onResumeFragment();

@@ -263,7 +263,7 @@ public class Node {
     }
 
     public String getAddress() {
-        return HostAndPort.fromParts(getHostAddress(), rpcPort).toString();
+        return HostAndPort.fromParts(host, rpcPort).toString();
     }
 
     public String getHostAddress() {
@@ -326,18 +326,29 @@ public class Node {
         if (DEFAULT_LEVIN_PORT > 0) return DEFAULT_LEVIN_PORT;
         switch (WalletManager.getInstance().getNetworkType()) {
             case NetworkType_Mainnet:
-                DEFAULT_LEVIN_PORT = 18080;
+                DEFAULT_LEVIN_PORT = 38301;
                 break;
             case NetworkType_Testnet:
-                DEFAULT_LEVIN_PORT = 28080;
+                DEFAULT_LEVIN_PORT = 38311;
                 break;
             case NetworkType_Stagenet:
-                DEFAULT_LEVIN_PORT = 38080;
+                DEFAULT_LEVIN_PORT = 38321;
                 break;
             default:
                 throw new IllegalStateException("unsupported net " + WalletManager.getInstance().getNetworkType());
         }
         return DEFAULT_LEVIN_PORT;
+    }
+
+    public int getLevinPort() {
+        return levinPort > 0 ? levinPort : getDefaultLevinPort();
+    }
+
+    public void setLevinPort(int levinPort) {
+        if (levinPort < 1 || levinPort > 65535) {
+            throw new IllegalArgumentException("invalid Levin port: " + levinPort);
+        }
+        this.levinPort = levinPort;
     }
 
     static private int DEFAULT_RPC_PORT = 0;
@@ -347,13 +358,13 @@ public class Node {
         if (DEFAULT_RPC_PORT > 0) return DEFAULT_RPC_PORT;
         switch (WalletManager.getInstance().getNetworkType()) {
             case NetworkType_Mainnet:
-                DEFAULT_RPC_PORT = 18081;
+                DEFAULT_RPC_PORT = 38302;
                 break;
             case NetworkType_Testnet:
-                DEFAULT_RPC_PORT = 28081;
+                DEFAULT_RPC_PORT = 38312;
                 break;
             case NetworkType_Stagenet:
-                DEFAULT_RPC_PORT = 38081;
+                DEFAULT_RPC_PORT = 38322;
                 break;
             default:
                 throw new IllegalStateException("unsupported net " + WalletManager.getInstance().getNetworkType());

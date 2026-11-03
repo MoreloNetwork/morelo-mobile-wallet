@@ -93,9 +93,6 @@ public class GenerateReviewFragment extends Fragment {
     private Button bAdvancedInfo;
     private Button bAccept;
 
-    private Button bSeedOffset;
-    private TextInputLayout etSeedOffset;
-
     private String walletPath;
     private String walletName;
 
@@ -129,9 +126,6 @@ public class GenerateReviewFragment extends Fragment {
         llSpendKey = view.findViewById(R.id.llSpendKey);
         llViewKey = view.findViewById(R.id.llViewKey);
 
-        etSeedOffset = view.findViewById(R.id.etSeedOffset);
-        bSeedOffset = view.findViewById(R.id.bSeedOffset);
-
         bAccept = view.findViewById(R.id.bAccept);
 
         boolean allowCopy = WalletManager.getInstance().getNetworkType() != NetworkType.NetworkType_Mainnet;
@@ -145,24 +139,6 @@ public class GenerateReviewFragment extends Fragment {
         bCopyAddress.setOnClickListener(v -> copyAddress());
         bAdvancedInfo.setOnClickListener(v -> toggleAdvancedInfo());
 
-        bSeedOffset.setOnClickListener(v -> toggleSeedOffset());
-        etSeedOffset.getEditText().addTextChangedListener(new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                showSeed();
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start,
-                                      int before, int count) {
-            }
-        });
-
         Bundle args = getArguments();
         assert args != null;
         type = args.getString(REQUEST_TYPE);
@@ -175,17 +151,7 @@ public class GenerateReviewFragment extends Fragment {
         return view;
     }
 
-    String getSeedOffset() {
-        return etSeedOffset.getEditText().getText().toString();
-    }
-
-    boolean seedOffsetInProgress = false;
-
     void showSeed() {
-        synchronized (this) {
-            if (seedOffsetInProgress) return;
-            seedOffsetInProgress = true;
-        }
         new AsyncShowSeed().executeOnExecutor(MoneroThreadPoolExecutor.MONERO_THREAD_POOL_EXECUTOR, walletPath);
     }
 
@@ -216,18 +182,6 @@ public class GenerateReviewFragment extends Fragment {
             llAdvancedInfo.setVisibility(View.VISIBLE);
             bAdvancedInfo.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_keyboard_arrow_up, 0, 0, 0);
             scrollview.post(() -> scrollview.fullScroll(ScrollView.FOCUS_DOWN));
-        }
-    }
-
-    void toggleSeedOffset() {
-        if (etSeedOffset.getVisibility() == View.VISIBLE) {
-            etSeedOffset.getEditText().getText().clear();
-            etSeedOffset.setVisibility(View.GONE);
-            bSeedOffset.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_keyboard_arrow_down, 0, 0, 0);
-        } else {
-            etSeedOffset.setVisibility(View.VISIBLE);
-            bSeedOffset.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_keyboard_arrow_up, 0, 0, 0);
-            etSeedOffset.requestFocusFromTouch();
         }
     }
 
@@ -285,7 +239,7 @@ public class GenerateReviewFragment extends Fragment {
 
             address = wallet.getAddress();
             height = wallet.getRestoreHeight();
-            seed = wallet.getSeed(getSeedOffset());
+            seed = wallet.getSeed();
             switch (wallet.getDeviceType()) {
                 case Ledger:
                     viewKey = Ledger.Key();
@@ -664,13 +618,11 @@ public class GenerateReviewFragment extends Fragment {
 
     private class AsyncShowSeed extends AsyncTask<String, Void, Boolean> {
         String seed;
-        String offset;
         Wallet.Status walletStatus;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            offset = getSeedOffset();
             flWalletMnemonic.setAlpha(0.1f);
         }
 
@@ -694,7 +646,7 @@ public class GenerateReviewFragment extends Fragment {
                 return false;
             }
 
-            seed = wallet.getSeed(offset);
+            seed = wallet.getSeed();
             if (closeWallet) wallet.close();
             return true;
         }
@@ -711,11 +663,7 @@ public class GenerateReviewFragment extends Fragment {
             } else {
                 tvWalletMnemonic.setText(walletStatus.toString());
             }
-            seedOffsetInProgress = false;
-            if (!getSeedOffset().equals(offset)) { // make sure we have encrypted with the correct offset
-                showSeed(); // seed has changed in the meantime - recalc
-            } else
-                flWalletMnemonic.setAlpha(1);
+            flWalletMnemonic.setAlpha(1);
         }
     }
 }

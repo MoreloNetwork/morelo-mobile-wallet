@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.m2049r.xmrwallet.data.DefaultNodes;
 import com.m2049r.xmrwallet.data.NodeInfo;
 import com.m2049r.xmrwallet.dialog.HelpFragment;
 import com.m2049r.xmrwallet.layout.WalletInfoAdapter;
@@ -58,6 +59,7 @@ import com.m2049r.xmrwallet.widget.Toolbar;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -116,6 +118,8 @@ public class LoginFragment extends Fragment implements WalletInfoAdapter.OnInter
         Set<NodeInfo> getFavouriteNodes();
 
         Set<NodeInfo> getOrPopulateFavourites();
+
+        void setFavouriteNodes(Collection<NodeInfo> nodes);
 
         boolean hasDevice(Wallet.Device type);
 
@@ -437,9 +441,14 @@ public class LoginFragment extends Fragment implements WalletInfoAdapter.OnInter
     }
 
     private NodeInfo autoselect(Set<NodeInfo> nodes) {
-        if (nodes.isEmpty()) return null;
-        NodePinger.execute(nodes, null);
-        List<NodeInfo> nodeList = new ArrayList<>(nodes);
+        Set<NodeInfo> candidates = nodes;
+        if (candidates.isEmpty()) {
+            candidates = DefaultNodes.getNodes();
+            activityCallback.setFavouriteNodes(candidates);
+        }
+        if (candidates.isEmpty()) return null;
+        NodePinger.execute(candidates, null);
+        List<NodeInfo> nodeList = new ArrayList<>(candidates);
         Collections.sort(nodeList, NodeInfo.BestNodeComparator);
         return nodeList.get(0);
     }

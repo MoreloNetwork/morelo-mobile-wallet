@@ -40,10 +40,4 @@
         android:title="@string/subbaddress_title"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_pocketchange"
-        android:orderInCategory="800"
-        android:title="@string/pocketchange_title"
-        app:showAsAction="never" />
-
 </menu>

@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum Crypto {
-    XMR("XMR", "XMR", "XMR", "monero:tx_amount:recipient_name:tx_description", R.id.ibXMR, R.drawable.ic_monero, R.drawable.ic_monero_bw, Pattern.compile("^[48][a-zA-Z|\\d]{94}([a-zA-Z|\\d]{11})?$")),
+    XMR("MORELO", "MORELO", "MORELO", "morelo:tx_amount:recipient_name:tx_description", R.id.ibXMR, R.drawable.ic_monero, R.drawable.ic_monero_bw, Pattern.compile("^e[a-zA-Z|\\d]{94}([a-zA-Z|\\d]{11})?$")),
     BTC("BTC", "BTC", "BTC", "bitcoin:amount:label:message", R.id.ibBTC, R.drawable.ic_xmrto_btc, R.drawable.ic_xmrto_btc_off, Pattern.compile("^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1q)|(bc1p)[0-9A-Za-z]{37,62}$")),
     LTC("LTC", "LTC", "LTC", "litecoin:amount:label:message", R.id.ibLTC, R.drawable.ic_xmrto_ltc, R.drawable.ic_xmrto_ltc_off, Pattern.compile("^([LM3])[A-Za-z0-9]{33}$|^(ltc1)[0-9A-Za-z]{39}$")),
     ETH("ETH", "ETH", "ETH", "ethereum:amount:label:message", R.id.ibETH, R.drawable.ic_xmrto_eth, R.drawable.ic_xmrto_eth_off, Pattern.compile("^(0x)[0-9A-Fa-f]{40}$")),
@@ -67,6 +67,7 @@ public enum Crypto {
     @Nullable
     public static Crypto withSymbol(@NonNull String symbol) {
         final String upperSymbol = symbol.toUpperCase();
+        if (upperSymbol.equals("XMR")) return XMR;
         for (Crypto crypto : values()) {
             if (crypto.symbol.equals(upperSymbol)) return crypto;
         }

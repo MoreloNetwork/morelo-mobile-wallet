@@ -53,11 +53,11 @@ public class WalletManager {
     static public String addressPrefix(NetworkType networkType) {
         switch (networkType) {
             case NetworkType_Testnet:
-                return "9A-";
+                return "e-";
             case NetworkType_Mainnet:
-                return "4-";
+                return "e-";
             case NetworkType_Stagenet:
-                return "5-";
+                return "e-";
             default:
                 throw new IllegalStateException("Unsupported Network: " + networkType);
         }
@@ -127,10 +127,9 @@ public class WalletManager {
     private native long openWalletJ(String path, String password, int networkType);
 
     public Wallet recoveryWallet(File aFile, String password,
-                                 String mnemonic, String offset,
-                                 long restoreHeight) {
+                                 String mnemonic, long restoreHeight) {
         long walletHandle = recoveryWalletJ(aFile.getAbsolutePath(), password,
-                mnemonic, offset,
+                mnemonic,
                 getNetworkType().getValue(), restoreHeight);
         Wallet wallet = new Wallet(walletHandle);
         manageWallet(wallet);
@@ -138,7 +137,7 @@ public class WalletManager {
     }
 
     private native long recoveryWalletJ(String path, String password,
-                                        String mnemonic, String offset,
+                                        String mnemonic,
                                         int networkType, long restoreHeight);
 
     public Wallet createWalletWithKeys(File aFile, String password, String language, long restoreHeight,
@@ -312,8 +311,6 @@ public class WalletManager {
     public native boolean stopMining();
 
     public native String resolveOpenAlias(String address, boolean dnssec_valid);
-
-    public native boolean setProxy(String address);
 
 //TODO static std::tuple<bool, std::string, std::string, std::string, std::string> checkUpdates(const std::string &software, const std::string &subdir);
 

@@ -104,31 +104,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/llPocketChange"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/MoneroLabel.Gray"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/pocketchange_title"
-                    android:textAlignment="textStart" />
-
-                <TextView
-                    android:id="@+id/tvTxChange"
-                    style="@style/MoneroText.Gray"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:textAlignment="textEnd"
-                    tools:text="143.008000000000" />
-            </LinearLayout>
-
-            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
