@@ -54,7 +54,6 @@ import com.m2049r.xmrwallet.data.Subaddress;
 import com.m2049r.xmrwallet.data.TxData;
 import com.m2049r.xmrwallet.data.UserNotes;
 import com.m2049r.xmrwallet.dialog.HelpFragment;
-import com.m2049r.xmrwallet.dialog.PocketChangeFragment;
 import com.m2049r.xmrwallet.fragment.send.SendAddressWizardFragment;
 import com.m2049r.xmrwallet.fragment.send.SendFragment;
 import com.m2049r.xmrwallet.ledger.LedgerProgressDialog;
@@ -84,8 +83,7 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
         WalletFragment.DrawerLocker,
         NavigationView.OnNavigationItemSelectedListener,
         SubaddressFragment.Listener,
-        SubaddressInfoFragment.Listener,
-        PocketChangeFragment.Listener {
+        SubaddressInfoFragment.Listener {
 
     public static final String REQUEST_ID = "id";
     public static final String REQUEST_PW = "pw";
@@ -232,7 +230,11 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
         if ((mBoundService != null) && (getWallet() != null)) {
             saveWallet();
         }
-        stopWalletService();
+        try {
+            stopWalletService();
+        } catch (IllegalStateException ex) {
+            Timber.w(ex, "WalletService was already unbound");
+        }
         if (drawer != null) drawer.removeDrawerListener(drawerToggle);
         super.onDestroy();
     }
@@ -281,8 +283,6 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
             HelpFragment.display(getSupportFragmentManager(), R.string.help_send);
         } else if (itemId == R.id.action_rename) {
             onAccountRename();
-        } else if (itemId == R.id.action_pocketchange) {
-            PocketChangeFragment.display(getSupportFragmentManager(), getWallet().getPocketChangeSetting());
         } else if (itemId == R.id.action_subaddresses) {
             showSubaddresses(true);
         } else if (itemId == R.id.action_streetmode) {
@@ -482,7 +482,9 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
     void disconnectWalletService() {
         if (mIsBound) {
             // Detach our existing connection.
-            mBoundService.setObserver(null);
+            if (mBoundService != null) {
+                mBoundService.setObserver(null);
+            }
             unbindService(mConnection);
             mIsBound = false;
             Timber.d("UNBOUND");
@@ -534,6 +536,11 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
     @Override
     public long getDaemonHeight() {
         return mBoundService.getDaemonHeight();
+    }
+
+    @Override
+    public long getDaemonTargetHeight() {
+        return mBoundService.getDaemonTargetHeight();
     }
 
     @Override
@@ -635,17 +642,18 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
             } else {
                 if (Wallet.ConnectionStatus.ConnectionStatus_WrongVersion == walletStatus.getConnectionStatus())
                     Toast.makeText(WalletActivity.this, getString(R.string.status_wallet_connect_wrongversion), Toast.LENGTH_LONG).show();
-                else if (!walletStatus.isOk())
+                else if (walletStatus.getStatus() != Wallet.StatusEnum.Status_Ok)
                     Toast.makeText(WalletActivity.this, walletStatus.getErrorString(), Toast.LENGTH_LONG).show();
+                else if (walletStatus.getConnectionStatus() != Wallet.ConnectionStatus.ConnectionStatus_Connected)
+                    Toast.makeText(WalletActivity.this, getString(R.string.status_wallet_connect_failed), Toast.LENGTH_LONG).show();
             }
         });
-        if ((walletStatus == null) || (Wallet.ConnectionStatus.ConnectionStatus_Connected != walletStatus.getConnectionStatus())) {
+        if ((walletStatus == null)
+                || (walletStatus.getStatus() != Wallet.StatusEnum.Status_Ok)) {
             finish();
         } else {
             haveWallet = true;
             invalidateOptionsMenu();
-
-            loadPocketChangeSettings();
 
             if (requestStreetMode) onEnableStreetMode();
 
@@ -1087,7 +1095,6 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
 
     public void setAccountIndex(int accountIndex) {
         getWallet().setAccountIndex(accountIndex);
-        loadPocketChangeSettings();
         selectedSubaddressIndex = 0;
     }
 
@@ -1198,20 +1205,6 @@ public class WalletActivity extends BaseActivity implements WalletFragment.Liste
         final Bundle b = new Bundle();
         b.putInt("subaddressIndex", subaddressIndex);
         replaceFragmentWithTransition(view, new SubaddressInfoFragment(), null, b);
-    }
-
-    @Override
-    public void setPocketChange(Wallet.PocketChangeSetting setting) {
-        SharedPreferences.Editor editor = getPrefs().edit();
-        editor.putString(getWallet().getAddress() + "_PC", setting.toPrefString());
-        editor.apply();
-        getWallet().setPocketChangeSetting(setting);
-    }
-
-
-    public void loadPocketChangeSettings() {
-        final String settings = getPrefs().getString(getWallet().getAddress() + "_PC", "0");
-        getWallet().setPocketChangeSetting(Wallet.PocketChangeSetting.from(settings));
     }
 
     @Getter

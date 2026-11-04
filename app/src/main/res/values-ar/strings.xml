@@ -31,18 +31,18 @@
     <string name="info_ledger_enabled">تم تفعيل Ledger، اضغط لمزيد من المعلومات.</string>
     <string name="info_xmrto"><![CDATA[
         <b>لقد أدخلت عنوان %1$s.</b><br/>
-        <i>سوف ترسل XMR وسيتلقى هذا العنوان %1$s باستخدام خدمة التبادل.</i>
+        <i>سوف ترسل XMR وسيتلقى هذا العنوان %2$s باستخدام خدمة <b>%3$s</b>.</i>
     ]]></string>
     <string name="info_send_xmrto_success_order_label">أمر تبادل</string>
     <string name="info_send_xmrto_success_btc">%1$s %2$s</string>
     <string name="info_send_xmrto_paid">التأكيد في انتظار</string>
     <string name="info_send_xmrto_unpaid">انتظار الدفع</string>
-    <string name="info_send_xmrto_error">خطأ في التبادل ( %1$s )</string>
+    <string name="info_send_xmrto_error">%1$s خطأ (%2$s)</string>
     <string name="info_send_xmrto_sent">تم إرسال %1$s !</string>
     <string name="info_send_xmrto_query">يتم الاستعلام...</string>
     <string name="info_send_xmrto_parms"><![CDATA[
 <b> يمكنك إرسال %1$s — %2$s %4$s </b> . <br/>
- <i> <b> البورصة </b> تمنحك سعر صرف <b> %3$s %4$s /XMR </b> <u> الآن </u> </i> .
+ <i> <b>%5$s</b> يمنحك سعر صرف <b> %3$s %4$s /XMR </b> <u> الآن </u> </i> .
 ]]></string>
     <string name="send_available_btc">الرصيد: %2$s %3$s ( %1$s XMR)</string>
     <string name="info_paymentid_integrated">✔ معرف الدفع متكامل</string>
@@ -327,7 +327,7 @@
 ]]></string>
     <string name="info_xmrto_help"><![CDATA[
         <b>الرجاء إدخال أو مسح عنوان %1$s.</b><br/>
-        <i>سوف ترسل XMR وسيحصل المستلم على %2$s باستخدام خدمة <b>SideShift.ai</b>.</i>
+        <i>سوف ترسل XMR وسيحصل المستلم على %2$s باستخدام خدمة <b>%3$s</b>.</i>
     ]]></string>
     <string name="info_xmrto_help_xmr"><![CDATA[
         <b>يرجى إدخال أو مسح عنوان Monero.</b>

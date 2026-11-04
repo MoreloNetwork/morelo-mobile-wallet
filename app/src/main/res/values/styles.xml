@@ -2,6 +2,7 @@
 <resources>
 
     <style name="MyMaterialTheme" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:windowBackground">@drawable/logo_watermark</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="materialCardViewStyle">@style/AppCard</item>
@@ -9,6 +10,8 @@
     </style>
 
     <style name="MyMaterialThemeOled" parent="MyMaterialTheme">
+        <item name="colorAccent">@color/oled_colorPrimary</item>
+        <item name="colorControlActivated">@color/oled_colorPrimary</item>
         <item name="toolbarTextColor">@color/oled_toolbarTextColor</item>
         <item name="gradientTopColor">@color/oled_gradientTopColor</item>
         <item name="gradientBottomColor">@color/oled_gradientBottomColor</item>
@@ -39,6 +42,8 @@
     </style>
 
     <style name="MyMaterialThemeClassic" parent="MyMaterialTheme">
+        <item name="colorAccent">@color/classic_colorPrimary</item>
+        <item name="colorControlActivated">@color/classic_colorPrimary</item>
         <item name="toolbarTextColor">@color/classic_toolbarTextColor</item>
         <item name="gradientTopColor">@color/classic_gradientTopColor</item>
         <item name="gradientBottomColor">@color/classic_gradientBottomColor</item>

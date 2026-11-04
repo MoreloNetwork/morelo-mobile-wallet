@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     ndkVersion '17.2.4988734'
     defaultConfig {
-        applicationId "com.m2049r.xmrwallet"
+        applicationId "org.morelonetwork.wallet"
         buildToolsVersion = '35.0.0'
         compileSdk 35
         minSdkVersion 21
@@ -72,13 +72,13 @@ android {
         abi {
             enable true
             reset()
-            include 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            include 'armeabi-v7a', 'arm64-v8a'
             universalApk true
         }
     }
 
     // Map for the version code that gives each ABI a value.
-    def abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2, 'x86': 3, 'x86_64': 4]
+    def abiCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2]
 
     // Enumerate translated locales
     def availableLocales = ["en"]
@@ -171,6 +171,10 @@ dependencies {
     testImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
     testImplementation 'org.json:json:20250517'
     testImplementation 'net.jodah:concurrentunit:0.4.6'
+
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
 
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'

@@ -47,6 +47,12 @@ public class OnBoardingViewPager extends ViewPager {
     }
 
     @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
+    }
+
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
         if (this.IsSwipeAllowed(event)) {
             return super.onInterceptTouchEvent(event);

@@ -23,6 +23,8 @@ import android.widget.TextView;
 
 import com.m2049r.levin.scanner.LevinPeer;
 import com.m2049r.xmrwallet.R;
+import com.m2049r.xmrwallet.model.NetworkType;
+import com.m2049r.xmrwallet.model.WalletManager;
 import com.m2049r.xmrwallet.util.NetCipherHelper;
 import com.m2049r.xmrwallet.util.NetCipherHelper.Request;
 import com.m2049r.xmrwallet.util.NodePinger;
@@ -37,6 +39,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -91,8 +95,7 @@ public class NodeInfo extends Node {
 
     synchronized public SocketAddress getLevinSocketAddress() {
         if (levinSocketAddress == null) {
-            // use default peer port if not set - very few peers use nonstandard port
-            levinSocketAddress = new InetSocketAddress(hostAddress.getHostAddress(), getDefaultLevinPort());
+            levinSocketAddress = new InetSocketAddress(hostAddress.getHostAddress(), getLevinPort());
         }
         return levinSocketAddress;
     }
@@ -210,6 +213,19 @@ public class NodeInfo extends Node {
         }
     }
 
+    static boolean isExpectedNetwork(NetworkType networkType, JSONObject info) throws JSONException {
+        switch (networkType) {
+            case NetworkType_Mainnet:
+                return info.getBoolean("mainnet");
+            case NetworkType_Stagenet:
+                return info.getBoolean("stagenet");
+            case NetworkType_Testnet:
+                return info.getBoolean("testnet");
+            default:
+                return false;
+        }
+    }
+
     private boolean testRpcService(int port) {
         Timber.d("Testing %s", toNodeString());
         clear();
@@ -250,14 +266,72 @@ public class NodeInfo extends Node {
         return false;
     }
 
-    static final private int[] TEST_PORTS = {18089}; // check only opt-in port
+    static Set<Integer> getRpcProbePorts(int defaultRpcPort) {
+        return getRpcProbePorts(defaultRpcPort, false);
+    }
+
+    static Set<Integer> getRpcProbePorts(int defaultRpcPort, boolean trustedDevnetEndpoint) {
+        Set<Integer> ports = new LinkedHashSet<>();
+        if (trustedDevnetEndpoint) {
+            ports.add(DefaultNodes.DEVNET_RPC_PORT);
+        }
+        if (defaultRpcPort > 0) {
+            ports.add(defaultRpcPort);
+        }
+        if (defaultRpcPort != 18089) {
+            ports.add(18089);
+        }
+        return ports;
+    }
+
+    private boolean testNetwork(int port, NetworkType expectedNetwork) {
+        if (port == DefaultNodes.DEVNET_RPC_PORT
+                && DefaultNodes.isTrustedDevnetEndpoint(getHost(), port, expectedNetwork)) {
+            return true;
+        }
+        if (hostAddress.isOnion() && !NetCipherHelper.isTor()) {
+            return false;
+        }
+        try {
+            final HttpUrl url = new HttpUrl.Builder()
+                    .scheme("http")
+                    .host(getHost())
+                    .port(port)
+                    .addPathSegment("get_info")
+                    .build();
+            try (Response response = new Request(url, null, getUsername(), getPassword()).execute()) {
+                ResponseBody body = response.body();
+                if (!response.isSuccessful() || body == null || body.contentLength() >= 20000) {
+                    return false;
+                }
+                boolean expected = isExpectedNetwork(expectedNetwork, new JSONObject(body.string()));
+                if (!expected) {
+                    responseCode = HttpURLConnection.HTTP_BAD_GATEWAY;
+                    majorVersion = 0;
+                }
+                return expected;
+            }
+        } catch (IOException | JSONException ex) {
+            Timber.d("Network check failed for %s: %s", toNodeString(), ex.getMessage());
+            return false;
+        }
+    }
 
     public boolean findRpcService() {
         // if already have an rpcPort, use that
-        if (rpcPort > 0) return testRpcService(rpcPort);
+        if (rpcPort > 0) {
+            if (!testRpcService(rpcPort)) {
+                return false;
+            }
+            return DefaultNodes.isTrustedDevnetEndpoint(getHost(), rpcPort,
+                    WalletManager.getInstance().getNetworkType())
+                    || testNetwork(rpcPort, WalletManager.getInstance().getNetworkType());
+        }
         // otherwise try to find one
-        for (int port : TEST_PORTS) {
-            if (testRpcService(port)) { // found a service
+        boolean trustedDevnetEndpoint = DefaultNodes.isTrustedDevnetEndpoint(
+                getHost(), DefaultNodes.DEVNET_RPC_PORT, WalletManager.getInstance().getNetworkType());
+        for (int port : getRpcProbePorts(getDefaultRpcPort(), trustedDevnetEndpoint)) {
+            if (testRpcService(port) && testNetwork(port, WalletManager.getInstance().getNetworkType())) { // found a service on the expected network
                 this.rpcPort = port;
                 return true;
             }

@@ -58,10 +58,7 @@
 
     <string name="info_send_xmrto_paid">در حال تایید</string>
     <string name="info_send_xmrto_unpaid">در حال پرداخت</string>
-    <string name="info_send_xmrto_error">
-    خطای Exolix
-    (%2$s)
-    </string>
+    <string name="info_send_xmrto_error">%1$s خطا (%2$s)</string>
     <string name="info_send_xmrto_sent">%1$s
     ارسال شد!
     </string>

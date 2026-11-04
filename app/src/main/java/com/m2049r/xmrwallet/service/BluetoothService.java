@@ -235,7 +235,13 @@ public class BluetoothService {
         connectedThread = new ConnectedThread(socket);
         connectedThread.start();
 
-        onConnected(device.getName());
+        String remoteName;
+        try {
+            remoteName = device.getName();
+        } catch (SecurityException ignored) {
+            remoteName = null;
+        }
+        onConnected(remoteName);
         onStateChanged();
     }
 
@@ -370,17 +376,21 @@ public class BluetoothService {
 
         public AcceptThread() {
             // Create a new listening server socket
+            BluetoothServerSocket socket = null;
             try {
-                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(SDP_NAME, SDP_UUID);
+                socket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(SDP_NAME, SDP_UUID);
                 state = BluetoothService.State.LISTEN;
-            } catch (IOException ex) {
+            } catch (IOException | SecurityException ex) {
                 Timber.d(ex, "listen() failed");
-                throw new IllegalStateException();
+                state = BluetoothService.State.NONE;
             }
+            serverSocket = socket;
         }
 
         public void run() {
             Timber.d("BEGIN AcceptThread %s", this);
+
+            if (serverSocket == null) return;
 
             BluetoothSocket socket;
 
@@ -392,6 +402,9 @@ public class BluetoothService {
                     socket = serverSocket.accept();
                 } catch (IOException ex) {
                     Timber.d(ex, "accept() failed"); // this also happens on socket.close()
+                    break;
+                } catch (SecurityException ex) {
+                    Timber.d(ex, "accept() permission denied");
                     break;
                 }
 
@@ -422,6 +435,7 @@ public class BluetoothService {
 
         public void cancel() {
             Timber.d("cancel() %s", this);
+            if (serverSocket == null) return;
             try {
                 serverSocket.close();
             } catch (IOException ex) {
@@ -443,27 +457,38 @@ public class BluetoothService {
             this.device = device;
 
             // Create a BluetoothSocket
+            BluetoothSocket connectionSocket = null;
             try {
-                socket = device.createRfcommSocketToServiceRecord(SDP_UUID);
+                connectionSocket = device.createRfcommSocketToServiceRecord(SDP_UUID);
                 state = BluetoothService.State.CONNECTING;
-            } catch (IOException ex) {
+            } catch (IOException | SecurityException ex) {
                 Timber.d(ex, "create() failed");
-                throw new IllegalStateException(); //TODO really die here?
+                state = BluetoothService.State.NONE;
             }
+            socket = connectionSocket;
         }
 
         public void run() {
             Timber.d("BEGIN ConnectThread");
 
+            if (socket == null) {
+                onConnectFailed();
+                return;
+            }
+
             // Always cancel discovery because it will slow down a connection
-            bluetoothAdapter.cancelDiscovery(); //TODO show & remember discovery state?
+            try {
+                bluetoothAdapter.cancelDiscovery(); //TODO show & remember discovery state?
+            } catch (SecurityException ex) {
+                Timber.d(ex, "cancelDiscovery() permission denied");
+            }
 
             // Make a connection to the BluetoothSocket
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
                 socket.connect(); // sometimes this fails - why?
-            } catch (IOException ex) {
+            } catch (IOException | SecurityException ex) {
                 try {
                     socket.close();
                 } catch (IOException exClose) {
@@ -483,9 +508,10 @@ public class BluetoothService {
         }
 
         public void cancel() {
+            if (socket == null) return;
             try {
                 socket.close();
-            } catch (IOException ex) {
+            } catch (IOException | SecurityException ex) {
                 Timber.d(ex, "close() of connect socket failed");
             }
         }

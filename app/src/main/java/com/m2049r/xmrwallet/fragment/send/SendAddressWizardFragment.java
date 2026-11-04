@@ -350,9 +350,20 @@ public class SendAddressWizardFragment extends SendWizardFragment {
 
     @Override
     public boolean onValidateFields() {
-        if (!checkAddressNoError()) {
+        String enteredAddress = etAddress.getEditText().getText().toString().trim();
+        BarcodeData barcodeData = BarcodeData.fromString(enteredAddress);
+        if (barcodeData != null) {
+            barcodeData.filter(ShiftService.getPossibleAssets());
+            possibleCryptos.clear();
+            possibleCryptos.addAll(barcodeData.getPossibleAssets());
+            selectedCrypto = barcodeData.getAsset();
+        } else {
+            possibleCryptos.clear();
+            selectedCrypto = null;
+        }
+
+        if (!checkAddress()) {
             shakeAddress();
-            String enteredAddress = etAddress.getEditText().getText().toString().trim();
             String dnsOA = dnsFromOpenAlias(enteredAddress);
             Timber.d("OpenAlias is %s", dnsOA);
             if (dnsOA != null) {
@@ -364,12 +375,12 @@ public class SendAddressWizardFragment extends SendWizardFragment {
         if (sendListener != null) {
             TxData txData = sendListener.getTxData();
             if (txData instanceof TxDataBtc) {
-                ((TxDataBtc) txData).setBtcAddress(etAddress.getEditText().getText().toString());
+                ((TxDataBtc) txData).setBtcAddress(enteredAddress);
                 ((TxDataBtc) txData).setBtcSymbol(selectedCrypto.getSymbol());
                 txData.setDestination(null);
                 ShiftService.ASSET = selectedCrypto;
             } else {
-                txData.setDestination(etAddress.getEditText().getText().toString());
+                txData.setDestination(enteredAddress);
                 ShiftService.ASSET = null;
             }
             txData.setUserNotes(new UserNotes(etNotes.getEditText().getText().toString()));

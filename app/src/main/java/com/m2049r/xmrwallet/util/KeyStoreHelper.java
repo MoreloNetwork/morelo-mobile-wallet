@@ -64,7 +64,7 @@ public class KeyStoreHelper {
 
     public static native byte[] slowHash(byte[] data, int brokenVariant);
 
-    static final private String RSA_ALIAS = "MonerujoRSA";
+    static final private String RSA_ALIAS = "MoreloWalletRSA";
 
     private static String getCrazyPass(Context context, String password, int brokenVariant) {
         byte[] data = password.getBytes(StandardCharsets.UTF_8);
@@ -216,7 +216,6 @@ public class KeyStoreHelper {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private static void createKeysJBMR2(Context context, String alias) throws NoSuchProviderException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException {
 

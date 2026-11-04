@@ -1,44 +1,54 @@
-/*
- * Copyright (c) 2020 m2049r
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.m2049r.xmrwallet.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.m2049r.xmrwallet.model.NetworkType;
+import com.m2049r.xmrwallet.model.WalletManager;
 
-@Getter
-@AllArgsConstructor
-public enum DefaultNodes {
-    AGORIST("xmr.agor.ist:18089/mainnet/agor.ist"),
-    BOLDSUCK("xmr-de.boldsuck.org:18081/mainnet/boldsuck.org"),
-    boldsuck("6dsdenp6vjkvqzy4wzsnzn6wixkdzihx3khiumyzieauxuxslmcaeiad.onion:18081/mainnet/boldsuck.onion"),
-    CAKE("xmr-node.cakewallet.com:18081/mainnet/cakewallet.com"),
-    DS_JETZT("monero.ds-jetzt.de:18089/mainnet/ds-jetzt.de"),
-    ds_jetzt("qvlr4w7yhnjrdg3txa72jwtpnjn4ezsrivzvocbnvpfbdo342fahhoad.onion:18089/mainnet/ds-jetzt.onion"),
-    MONERODEVS("node.monerodevs.org:18089/mainnet/monerodevs.org"),
-    MONERUJO("nodex.monerujo.io:18081/mainnet/monerujo.io"),
-    monerujo("monerujods7mbghwe6cobdr6ujih6c22zu5rl7zshmizz2udf7v7fsad.onion:18081/mainnet/monerujo.onion"),
-    SETH("node.sethforprivacy.com:18089/mainnet/sethforprivacy.com"),
-    seth("sfpp2p7wnfjv3lrvfan4jmmkvhnbsbimpa3cqyuf7nt6zd24xhcqcsyd.onion/mainnet/sethforprivacy.onion"),
-    STACK("monero.stackwallet.com:18081/mainnet/stackwallet.com"),
-    STORMYCLOUD("xmr.stormycloud.org:18089/mainnet/stormycloud.org"),
-    TENZ("monero.10z.com.ar:18089/mainnet/10z.com.ar"),
-    XMRROCKS("node.xmr.rocks:18089/mainnet/xmr.rocks"),
-    xmrrocks("xqnnz2xmlmtpy2p4cm4cphg2elkwu5oob7b7so5v4wwgt44p6vbx5ryd.onion/mainnet/xmr.rocks.onion"),
-    XMRTW("opennode.xmr-tw.org:18089/mainnet/xmr-tw.org");
+import java.util.HashSet;
+import java.util.Set;
 
-    private final String uri;
+public final class DefaultNodes {
+	static final String DEVNET_HOST = "138.3.255.138";
+	static final int DEVNET_RPC_PORT = 38302;
+	static final int DEVNET_LEVIN_PORT = 38301;
+	private static final String[] DEVNET_NODES = {
+			DEVNET_HOST + ":" + DEVNET_RPC_PORT + "/testnet"
+	};
+	private static final String[] MAINNET_NODES = {
+			"0.seed.morelonetwork.pl:38302/mainnet",
+			"1.seed.morelonetwork.pl:38302/mainnet"
+	};
+
+	private DefaultNodes() {
+	}
+
+	static String[] getNodeStrings(NetworkType networkType) {
+		if (networkType == NetworkType.NetworkType_Mainnet) {
+			return MAINNET_NODES.clone();
+		}
+		if (networkType == NetworkType.NetworkType_Testnet) {
+			return DEVNET_NODES.clone();
+		}
+		return new String[0];
+	}
+
+	public static Set<NodeInfo> getNodes() {
+		Set<NodeInfo> nodes = new HashSet<>();
+		for (String nodeString : getNodeStrings(WalletManager.getInstance().getNetworkType())) {
+			NodeInfo node = NodeInfo.fromString(nodeString);
+			if (node != null) {
+				if (isTrustedDevnetEndpoint(node.getHost(), node.getRpcPort(), WalletManager.getInstance().getNetworkType())) {
+					node.setLevinPort(DEVNET_LEVIN_PORT);
+				}
+				node.setFavourite(true);
+				nodes.add(node);
+			}
+		}
+		return nodes;
+	}
+
+	static boolean isTrustedDevnetEndpoint(String host, int rpcPort, NetworkType networkType) {
+		return networkType == NetworkType.NetworkType_Testnet
+				&& DEVNET_HOST.equals(host)
+				&& rpcPort == DEVNET_RPC_PORT;
+	}
 }

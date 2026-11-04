@@ -33,9 +33,21 @@ public class BluetoothInfo {
     private boolean bonded;
 
     public BluetoothInfo(BluetoothDevice device) {
-        name = device.getName().trim();
-        address = device.getAddress();
-        bonded = device.getBondState() == BluetoothDevice.BOND_BONDED;
+        String deviceName;
+        String deviceAddress;
+        boolean isBonded;
+        try {
+            deviceName = device.getName();
+            deviceAddress = device.getAddress();
+            isBonded = device.getBondState() == BluetoothDevice.BOND_BONDED;
+        } catch (SecurityException ignored) {
+            deviceName = null;
+            deviceAddress = null;
+            isBonded = false;
+        }
+        name = deviceName == null ? "" : deviceName.trim();
+        address = deviceAddress;
+        bonded = isBonded;
     }
 
     static public Comparator<BluetoothInfo> NameComparator = (o1, o2) -> o1.name.compareTo(o2.name);

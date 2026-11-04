@@ -114,7 +114,7 @@ public class LegacyStorageHelper {
         final String FLAVOR_SUFFIX =
                 (BuildConfig.FLAVOR.startsWith("prod") ? "" : "." + BuildConfig.FLAVOR)
                         + (BuildConfig.DEBUG ? "-debug" : "");
-        final String WALLET_DIR = "monerujo" + FLAVOR_SUFFIX;
+        final String WALLET_DIR = "morelo" + FLAVOR_SUFFIX;
 
         File dir = new File(Environment.getExternalStorageDirectory(), WALLET_DIR);
         if (!dir.exists() || !dir.isDirectory())

@@ -1,6 +1,8 @@
-FROM debian:stable
+FROM ubuntu:20.04
 
-RUN set -x && apt-get update && apt-get install -y unzip automake build-essential curl file pkg-config git python3 python-is-python3 libtool libtinfo5 yacc
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -x && apt-get update && apt-get install -y unzip automake build-essential curl file pkg-config git python3 python-is-python3 libtool libtinfo5 bison
 
 WORKDIR /opt/android
 ## INSTALL ANDROID SDK
@@ -16,7 +18,11 @@ RUN set -x \
 ENV ANDROID_NDK_REVISION=17c
 ENV ANDROID_NDK_HASH=3f541adbd0330a9205ba12697f6d04ec90752c53d6b622101a2a8a856e816589
 RUN set -x \
-    && curl -O https://dl.google.com/android/repository/android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip \
+    && for attempt in 1 2 3 4 5; do \
+         curl -C - -O https://dl.google.com/android/repository/android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip && break; \
+         [ "$attempt" -lt 5 ] || exit 1; \
+         sleep 5; \
+       done \
     && echo "${ANDROID_NDK_HASH}  android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip" | sha256sum -c \
     && unzip android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip \
     && rm -f android-ndk-r${ANDROID_NDK_REVISION}-linux-x86_64.zip
@@ -50,7 +56,7 @@ ARG BOOST_VERSION=1_70_0
 ARG BOOST_VERSION_DOT=1.70.0
 ARG BOOST_HASH=430ae8354789de4fd19ee52f3b1f739e1fba576f0aded0897c3c2bc00fb38778
 RUN set -x \
-    && curl -L -o  boost_${BOOST_VERSION}.tar.bz2 https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION_DOT}/source/boost_${BOOST_VERSION}.tar.bz2 \
+    && curl -L -o  boost_${BOOST_VERSION}.tar.bz2 https://archives.boost.io/release/${BOOST_VERSION_DOT}/source/boost_${BOOST_VERSION}.tar.bz2 \
     && echo "${BOOST_HASH}  boost_${BOOST_VERSION}.tar.bz2" | sha256sum -c \
     && tar -xvf boost_${BOOST_VERSION}.tar.bz2 \
     && rm -f boost_${BOOST_VERSION}.tar.bz2 \
@@ -83,7 +89,7 @@ RUN set -x \
 ENV ZLIB_VERSION=1.3.1
 ENV ZLIB_HASH=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 RUN set -x \
-    && curl -O https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz \
+    && curl -O https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz \
     && echo "${ZLIB_HASH}  zlib-${ZLIB_VERSION}.tar.gz" | sha256sum -c \
     && tar -xzf zlib-${ZLIB_VERSION}.tar.gz \
     && rm zlib-${ZLIB_VERSION}.tar.gz \
@@ -118,19 +124,19 @@ RUN set -x \
     && git clone https://github.com/zeromq/libzmq.git -b ${ZMQ_VERSION} \
     && cd libzmq \
     && test `git rev-parse HEAD` = ${ZMQ_HASH} || exit 1 \
-    && ./autogen.sh \
-    && CC=clang CXX=clang++ ./configure --prefix=${PREFIX} --host=aarch64-linux-android --enable-static --disable-shared \
+    && DO_NOT_UPDATE_CONFIG_SCRIPTS=1 ./autogen.sh \
+    && CC=clang CXX=clang++ ./configure --prefix=${PREFIX} --host=aarch64-linux-android --enable-static --disable-shared --disable-curve-keygen \
     && make -j${NPROC} \
     && make install
 
 # Sodium
 ARG SODIUM_VERSION=1.0.18
-ARG SODIUM_HASH=4f5e89fa84ce1d178a6765b8b46f2b6f91216677
+ARG SODIUM_HASH=45b09a607d596e40adbff9ab812e47d85175c053
 RUN set -x \
     && git clone https://github.com/jedisct1/libsodium.git -b ${SODIUM_VERSION} \
     && cd libsodium \
     && test `git rev-parse HEAD` = ${SODIUM_HASH} || exit 1 \
-    && ./autogen.sh \
+    && DO_NOT_UPDATE_CONFIG_SCRIPTS=1 ./autogen.sh \
     && CC=clang CXX=clang++ ./configure --prefix=${PREFIX} --host=aarch64-linux-android --enable-static --disable-shared \
     && make  -j${NPROC} \
     && make install
@@ -163,9 +169,10 @@ RUN set -x \
     && cd /src \
     && CMAKE_INCLUDE_PATH="${PREFIX}/include" \
        CMAKE_LIBRARY_PATH="${PREFIX}/lib" \
+       PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" \
        ANDROID_STANDALONE_TOOLCHAIN_PATH=${TOOLCHAIN_DIR} \
        USE_SINGLE_BUILDDIR=1 \
-       PATH=${HOST_PATH} make release-static-android-armv8-wallet_api -j${NPROC}
+       PATH=${HOST_PATH} make release-static-android-armv8 -j${NPROC}
 
 RUN set -x \
     && cd /src/build/release \
